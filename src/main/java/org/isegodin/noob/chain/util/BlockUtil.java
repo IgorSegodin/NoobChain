@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class BlockUtil {
 
-    public static int difficulty = 5;
+    public static int difficulty = 1;
 
     public static Block createNewBlock(String data, String previousHash) {
         long timestamp = System.currentTimeMillis();

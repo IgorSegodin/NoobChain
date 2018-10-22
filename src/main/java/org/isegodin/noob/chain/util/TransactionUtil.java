@@ -10,10 +10,14 @@ public class TransactionUtil {
 
     public static String generateHash(PublicKey sender, PublicKey receiver, float value, UUID id) {
         return HashUtil.sha256(
-                KeyUtil.keyToString(sender) +
-                        KeyUtil.keyToString(receiver) +
+                CryptoUtil.keyToString(sender) +
+                        CryptoUtil.keyToString(receiver) +
                         value +
                         id
         );
+    }
+
+    public static String buildSignatureData(PublicKey sender, PublicKey receiver, float value) {
+        return CryptoUtil.keyToString(sender) + CryptoUtil.keyToString(receiver) + value;
     }
 }
