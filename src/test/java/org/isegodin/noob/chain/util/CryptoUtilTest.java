@@ -15,7 +15,7 @@ public class CryptoUtilTest {
 
     @Test
     public void testEncryptVerify() {
-        String transactionData = TransactionUtil.buildSignatureData(
+        String transactionData = TransactionUtil.buildTransactionSignatureData(
                 senderKeyPair.getPublic(),
                 receiverKeyPair.getPublic(),
                 10
@@ -28,13 +28,13 @@ public class CryptoUtilTest {
 
     @Test
     public void testEncryptVerifyFail() {
-        String transactionData = TransactionUtil.buildSignatureData(
+        String transactionData = TransactionUtil.buildTransactionSignatureData(
                 senderKeyPair.getPublic(),
                 receiverKeyPair.getPublic(),
                 10
         );
 
-        String changedTransactionData = TransactionUtil.buildSignatureData(
+        String changedTransactionData = TransactionUtil.buildTransactionSignatureData(
                 senderKeyPair.getPublic(),
                 receiverKeyPair.getPublic(),
                 11

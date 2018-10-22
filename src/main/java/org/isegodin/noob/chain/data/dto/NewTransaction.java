@@ -1,26 +1,22 @@
-package org.isegodin.noob.chain.data;
+package org.isegodin.noob.chain.data.dto;
 
 import lombok.Builder;
 import lombok.Value;
+import org.isegodin.noob.chain.data.TransactionInput;
 
 import java.security.PublicKey;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * @author i.segodin
+ * @author isegodin
  */
 @Value
 @Builder
-public class Transaction {
+public class NewTransaction {
 
-    UUID id;
     PublicKey sender;
     PublicKey receiver;
     float value;
     byte[] signature;
-    String hash;
     List<TransactionInput> inputs;
-    List<TransactionOutput> outputs;
-
 }
