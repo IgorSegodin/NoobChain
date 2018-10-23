@@ -16,7 +16,7 @@ public class NewTransaction {
 
     PublicKey sender;
     PublicKey receiver;
-    float value;
+    double value;
     byte[] signature;
     List<TransactionInput> inputs;
 }

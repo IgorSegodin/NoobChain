@@ -22,7 +22,7 @@ public class BlockUtil {
         String previousHash = "0";
         for (Block block : chain) {
 
-            if(!block.getPreviousHash().equals(previousHash)) {
+            if (!block.getPreviousHash().equals(previousHash)) {
                 return false;
             }
 
@@ -62,25 +62,26 @@ public class BlockUtil {
         }
 
         return Block.builder()
-                .transactions(transactions)
+                .hash(newHash)
                 .previousHash(previousHash)
+                .merkleRoot(merkleRoot)
+                .transactions(transactions)
                 .timestamp(timestamp)
                 .nonce(nonce)
-                .hash(newHash)
                 .build();
     }
 
     private static String generateMerkleRoot(List<Transaction> transactions) {
         int count = transactions.size();
         List<String> previousTreeLayer = new ArrayList<>();
-        for(Transaction transaction : transactions) {
+        for (Transaction transaction : transactions) {
             previousTreeLayer.add(transaction.getId().toString());
         }
         List<String> treeLayer = previousTreeLayer;
-        while(count > 1) {
+        while (count > 1) {
             treeLayer = new ArrayList<>();
-            for(int i=1; i < previousTreeLayer.size(); i++) {
-                treeLayer.add(HashUtil.sha256(previousTreeLayer.get(i-1) + previousTreeLayer.get(i)));
+            for (int i = 1; i < previousTreeLayer.size(); i++) {
+                treeLayer.add(HashUtil.sha256(previousTreeLayer.get(i - 1) + previousTreeLayer.get(i)));
             }
             count = treeLayer.size();
             previousTreeLayer = treeLayer;

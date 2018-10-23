@@ -15,6 +15,6 @@ public class TransactionOutput {
 
     String hash;
     PublicKey receiver;
-    float value;
+    double value;
     UUID parentTransactionId;
 }

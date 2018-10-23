@@ -17,7 +17,7 @@ public class Transaction {
     UUID id;
     PublicKey sender;
     PublicKey receiver;
-    float value;
+    double value;
     byte[] signature;
     String hash;
     List<TransactionInput> inputs;

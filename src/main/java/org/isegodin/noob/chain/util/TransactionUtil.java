@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  */
 public class TransactionUtil {
 
-    public static String generateTransactionHash(PublicKey sender, PublicKey receiver, float value, UUID txId) {
+    public static String generateTransactionHash(PublicKey sender, PublicKey receiver, double value, UUID txId) {
         return HashUtil.sha256(
                 CryptoUtil.keyToString(sender) +
                         CryptoUtil.keyToString(receiver) +
@@ -27,22 +27,22 @@ public class TransactionUtil {
         );
     }
 
-    public static String generateTransactionOutputHash(PublicKey receiver, float value, UUID parentTxId) {
+    public static String generateTransactionOutputHash(PublicKey receiver, double value, UUID parentTxId) {
         return HashUtil.sha256(
                 CryptoUtil.keyToString(receiver) +
-                        Float.toString(value) +
+                        value +
                         parentTxId
         );
     }
 
-    public static String generateTransactionSignatureData(PublicKey sender, PublicKey receiver, float value) {
+    public static String generateTransactionSignatureData(PublicKey sender, PublicKey receiver, double value) {
         return CryptoUtil.keyToString(sender) + CryptoUtil.keyToString(receiver) + value;
     }
 
     public static Transaction process(NewTransaction newTx, Map<String, TransactionOutput> unspentOutputMap) {
         String txSignData = generateTransactionSignatureData(newTx.getSender(), newTx.getReceiver(), newTx.getValue());
 
-        if (!CryptoUtil.verifyECDSA(newTx.getReceiver(), txSignData, newTx.getSignature())) {
+        if (!CryptoUtil.verifyECDSA(newTx.getSender(), txSignData, newTx.getSignature())) {
             throw new RuntimeException("Invalid transaction signature: " + newTx);
         }
 
@@ -57,13 +57,13 @@ public class TransactionUtil {
             throw new RuntimeException("Transaction inputs refer to other owner outputs");
         }
 
-        float outputValue = BigDecimal.valueOf(
+        double outputValue = BigDecimal.valueOf(
                 unspentOutputs.stream()
                         .mapToDouble(TransactionOutput::getValue)
                         .sum()
-        ).floatValue();
+        ).doubleValue();
 
-        float senderRemain = outputValue - newTx.getValue();
+        double senderRemain = outputValue - newTx.getValue();
 
         if (senderRemain < 0) {
             throw new RuntimeException("Negative sender balance");
@@ -78,7 +78,7 @@ public class TransactionUtil {
         return tx;
     }
 
-    public static Transaction createTransaction(NewTransaction newTx, float senderRemain) {
+    public static Transaction createTransaction(NewTransaction newTx, double senderRemain) {
         UUID txId = UUID.randomUUID();
         String txHash = generateTransactionHash(newTx.getSender(), newTx.getReceiver(), newTx.getValue(), txId);
 
