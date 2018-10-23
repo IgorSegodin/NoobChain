@@ -1,54 +1,53 @@
 package org.isegodin.noob.chain.util;
 
 import org.isegodin.noob.chain.data.Block;
+import org.isegodin.noob.chain.data.dto.NewTransaction;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.security.KeyPair;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author i.segodin
  */
 public class BlockUtilTest {
 
+    private static final KeyPair noobKeyPair = CryptoUtil.generateKeyPair();
+    private static final KeyPair bobKeyPair = CryptoUtil.generateKeyPair();
+    private static final KeyPair steveKeyPair = CryptoUtil.generateKeyPair();
+
     @Test
     public void testValidChain() {
-        Block genesisBlock = BlockUtil.createNewBlock("Genesis block", "0");
-        Block block2 = BlockUtil.createNewBlock("Block 2", genesisBlock.getHash());
-        Block block3 = BlockUtil.createNewBlock("Block 3", block2.getHash());
+        Block genesisBlock = createGenesisBlock();
 
-        List<Block> chain = Arrays.asList(genesisBlock, block2, block3);
-
-        Assert.assertTrue(BlockUtil.isValidChain(chain));
+        Assert.assertTrue(BlockUtil.isValidChain(Arrays.asList(genesisBlock)));
     }
 
     @Test
-    public void testInValidChainOrder() {
-        Block genesisBlock = BlockUtil.createNewBlock("Genesis block", "0");
-        Block block2 = BlockUtil.createNewBlock("Block 2", genesisBlock.getHash());
-        Block block3 = BlockUtil.createNewBlock("Block 3", block2.getHash());
-
-        List<Block> chain = Arrays.asList(genesisBlock, block3, block2);
-
-        Assert.assertFalse(BlockUtil.isValidChain(chain));
+    public void testSendCoins() {
+        Assert.assertTrue(false);
     }
 
-    @Test
-    public void testInValidChainHash() {
-        Block genesisBlock = BlockUtil.createNewBlock("Genesis block", "0");
-        Block block2 = BlockUtil.createNewBlock("Block 2", genesisBlock.getHash());
-        Block block3 = BlockUtil.createNewBlock("Block 3", block2.getHash());
+    public Block createGenesisBlock() {
+        return BlockUtil.createNewBlock(
+                Arrays.asList(
+                        TransactionUtil.createTransaction(
+                                NewTransaction.builder()
+                                        .sender(noobKeyPair.getPublic())
+                                        .receiver(noobKeyPair.getPublic())
+                                        .value(100)
+                                        .signature(
+                                                CryptoUtil.signECDSA(
+                                                        noobKeyPair.getPrivate(),
+                                                        TransactionUtil.generateTransactionSignatureData(noobKeyPair.getPublic(), noobKeyPair.getPublic(), 100)
+                                                )
+                                        )
+                                        .build(), 0
+                        )
+                ), "0");
 
-        Block block2New = Block.builder()
-                .data(block2.getData())
-                .timestamp(0)
-                .previousHash(block2.getPreviousHash())
-                .hash(block2.getHash())
-                .build();
-
-        List<Block> chain = Arrays.asList(genesisBlock, block2New, block3);
-
-        Assert.assertFalse(BlockUtil.isValidChain(chain));
     }
+
+
 }

@@ -35,12 +35,12 @@ public class TransactionUtil {
         );
     }
 
-    public static String buildTransactionSignatureData(PublicKey sender, PublicKey receiver, float value) {
+    public static String generateTransactionSignatureData(PublicKey sender, PublicKey receiver, float value) {
         return CryptoUtil.keyToString(sender) + CryptoUtil.keyToString(receiver) + value;
     }
 
     public static Transaction process(NewTransaction newTx, Map<String, TransactionOutput> unspentOutputMap) {
-        String txSignData = buildTransactionSignatureData(newTx.getSender(), newTx.getReceiver(), newTx.getValue());
+        String txSignData = generateTransactionSignatureData(newTx.getSender(), newTx.getReceiver(), newTx.getValue());
 
         if (!CryptoUtil.verifyECDSA(newTx.getReceiver(), txSignData, newTx.getSignature())) {
             throw new RuntimeException("Invalid transaction signature: " + newTx);
@@ -78,7 +78,7 @@ public class TransactionUtil {
         return tx;
     }
 
-    private static Transaction createTransaction(NewTransaction newTx, float senderRemain) {
+    public static Transaction createTransaction(NewTransaction newTx, float senderRemain) {
         UUID txId = UUID.randomUUID();
         String txHash = generateTransactionHash(newTx.getSender(), newTx.getReceiver(), newTx.getValue(), txId);
 
@@ -93,14 +93,16 @@ public class TransactionUtil {
                         .build()
         );
 
-        outputs.add(
-                TransactionOutput.builder()
-                        .hash(generateTransactionOutputHash(newTx.getSender(), senderRemain, txId))
-                        .receiver(newTx.getSender())
-                        .value(senderRemain)
-                        .parentTransactionId(txId)
-                        .build()
-        );
+        if (senderRemain > 0) {
+            outputs.add(
+                    TransactionOutput.builder()
+                            .hash(generateTransactionOutputHash(newTx.getSender(), senderRemain, txId))
+                            .receiver(newTx.getSender())
+                            .value(senderRemain)
+                            .parentTransactionId(txId)
+                            .build()
+            );
+        }
 
         return Transaction.builder()
                 .id(txId)
@@ -112,6 +114,30 @@ public class TransactionUtil {
                 .inputs(newTx.getInputs())
                 .outputs(outputs)
                 .build();
+    }
+
+    public static boolean isValidTransaction(Transaction transaction) {
+        String txHash = generateTransactionHash(transaction.getSender(), transaction.getReceiver(), transaction.getValue(), transaction.getId());
+
+        if (!txHash.equals(transaction.getHash())) {
+            return false;
+        }
+
+        String txSignData = generateTransactionSignatureData(transaction.getSender(), transaction.getReceiver(), transaction.getValue());
+
+        if (!CryptoUtil.verifyECDSA(transaction.getSender(), txSignData, transaction.getSignature())) {
+            return false;
+        }
+
+        for (TransactionOutput output : transaction.getOutputs()) {
+            String outputHash = generateTransactionOutputHash(output.getReceiver(), output.getValue(), transaction.getId());
+
+            if (!outputHash.equals(output.getHash())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

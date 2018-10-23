@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -12,6 +13,8 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
@@ -36,6 +39,18 @@ public class CryptoUtil {
 
     public static String keyToString(Key key) {
         return Base64.getEncoder().encodeToString(key.getEncoded());
+    }
+
+    @SneakyThrows
+    public static PrivateKey stringToPrivateKey(String privateKeyString) {
+        byte[] bytes = Base64.getDecoder().decode(privateKeyString);
+        return KeyFactory.getInstance(ECDSA).generatePrivate(new PKCS8EncodedKeySpec(bytes));
+    }
+
+    @SneakyThrows
+    public static PublicKey stringToPublicKey(String publicKeyString) {
+        byte[] bytes = Base64.getDecoder().decode(publicKeyString);
+        return KeyFactory.getInstance(ECDSA).generatePublic(new X509EncodedKeySpec(bytes));
     }
 
     @SneakyThrows

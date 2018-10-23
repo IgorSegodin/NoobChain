@@ -3,6 +3,8 @@ package org.isegodin.noob.chain.data;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.List;
+
 /**
  * @author i.segodin
  */
@@ -10,9 +12,10 @@ import lombok.Value;
 @Builder
 public class Block {
 
-    String data;
-    long timestamp;
-    String previousHash;
-    int nonce;
     String hash;
+    String previousHash;
+    String merkleRoot;
+    List<Transaction> transactions;
+    long timestamp;
+    int nonce;
 }

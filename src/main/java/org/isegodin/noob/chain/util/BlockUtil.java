@@ -1,7 +1,9 @@
 package org.isegodin.noob.chain.util;
 
 import org.isegodin.noob.chain.data.Block;
+import org.isegodin.noob.chain.data.Transaction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,9 +13,9 @@ public class BlockUtil {
 
     public static int difficulty = 1;
 
-    public static Block createNewBlock(String data, String previousHash) {
+    public static Block createNewBlock(List<Transaction> transactions, String previousHash) {
         long timestamp = System.currentTimeMillis();
-        return mineBlock(data, previousHash, timestamp);
+        return mineBlock(transactions, previousHash, timestamp);
     }
 
     public static boolean isValidChain(List<Block> chain) {
@@ -24,38 +26,66 @@ public class BlockUtil {
                 return false;
             }
 
-            String calcHash = calcBlockHash(block.getData(), block.getPreviousHash(), block.getTimestamp(), block.getNonce());
+            String calcHash = generateBlockHash(generateMerkleRoot(block.getTransactions()), block.getPreviousHash(), block.getTimestamp(), block.getNonce());
 
             if (!block.getHash().equals(calcHash)) {
                 return false;
             }
+
+            for (Transaction transaction : block.getTransactions()) {
+                if (!TransactionUtil.isValidTransaction(transaction)) {
+                    return false;
+                }
+            }
+
             previousHash = calcHash;
         }
         return true;
     }
 
-    private static String calcBlockHash(String data, String previousHash, long timestamp, int nonce) {
-        return HashUtil.sha256(data + previousHash + timestamp + nonce);
+    private static String generateBlockHash(String merkleRoot, String previousHash, long timestamp, int nonce) {
+        return HashUtil.sha256(merkleRoot + previousHash + timestamp + nonce);
     }
 
-    private static Block mineBlock(String data, String previousHash, long timestamp) {
+    private static Block mineBlock(List<Transaction> transactions, String previousHash, long timestamp) {
         String target = new String(new char[difficulty]).replace('\0', '0');
 
         int nonce = 0;
-        String newHash = calcBlockHash(data, previousHash, timestamp, nonce);
+
+        String merkleRoot = generateMerkleRoot(transactions);
+
+        String newHash = generateBlockHash(merkleRoot, previousHash, timestamp, nonce);
 
         while (!newHash.substring(0, difficulty).equals(target)) {
             nonce++;
-            newHash = calcBlockHash(data, previousHash, timestamp, nonce);
+            newHash = generateBlockHash(merkleRoot, previousHash, timestamp, nonce);
         }
 
         return Block.builder()
-                .data(data)
+                .transactions(transactions)
                 .previousHash(previousHash)
                 .timestamp(timestamp)
                 .nonce(nonce)
                 .hash(newHash)
                 .build();
+    }
+
+    private static String generateMerkleRoot(List<Transaction> transactions) {
+        int count = transactions.size();
+        List<String> previousTreeLayer = new ArrayList<>();
+        for(Transaction transaction : transactions) {
+            previousTreeLayer.add(transaction.getId().toString());
+        }
+        List<String> treeLayer = previousTreeLayer;
+        while(count > 1) {
+            treeLayer = new ArrayList<>();
+            for(int i=1; i < previousTreeLayer.size(); i++) {
+                treeLayer.add(HashUtil.sha256(previousTreeLayer.get(i-1) + previousTreeLayer.get(i)));
+            }
+            count = treeLayer.size();
+            previousTreeLayer = treeLayer;
+        }
+        return (treeLayer.size() == 1) ? treeLayer.get(0) : "";
     }
 }
 
